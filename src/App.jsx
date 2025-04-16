@@ -8,8 +8,19 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Check for API key on load
+  const apiKey = import.meta.env.VITE_HUGGINGFACE_API_KEY;
+  if (!apiKey) {
+    console.error('Hugging Face API key is missing. Please set VITE_HUGGINGFACE_API_KEY in Vercel.');
+  }
+
   const generateImage = async () => {
-    console.log('API Key:', import.meta.env.VITE_HUGGINGFACE_API_KEY); // Debug API key
+    console.log('API Key:', apiKey);
+    if (!apiKey) {
+      setError('Hugging Face API key is missing. Please contact the app administrator.');
+      return;
+    }
+
     setLoading(true);
     setError('');
     try {
@@ -26,7 +37,7 @@ function App() {
         { inputs: prompt },
         {
           headers: {
-            Authorization: `Bearer ${import.meta.env.VITE_HUGGINGFACE_API_KEY}`,
+            Authorization: `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
           },
           responseType: 'blob',
@@ -37,7 +48,7 @@ function App() {
       const imageUrl = URL.createObjectURL(imageBlob);
       setImageUrl(imageUrl);
     } catch (err) {
-      console.error('Error generating image:', err); // Log the error for debugging
+      console.error('Error generating image:', err);
       setError('Failed to generate image: ' + (err.message || 'Unknown error'));
     } finally {
       setLoading(false);
@@ -47,6 +58,11 @@ function App() {
   return (
     <div className="App">
       <h1>Image Generator</h1>
+      {!apiKey && (
+        <p style={{ color: 'red' }}>
+          Hugging Face API key is missing. Please contact the app administrator.
+        </p>
+      )}
       <p>Enter a prompt below to generate an image using Hugging Face AI.</p>
       <input
         type="text"
@@ -54,7 +70,7 @@ function App() {
         onChange={(e) => setPrompt(e.target.value)}
         placeholder="Enter a prompt (e.g., 'A cat in a spacesuit')"
       />
-      <button onClick={generateImage} disabled={loading}>
+      <button onClick={generateImage} disabled={loading || !apiKey}>
         {loading ? 'Generating...' : 'Generate Image'}
       </button>
       {error && <p style={{ color: 'red' }}>{error}</p>}
