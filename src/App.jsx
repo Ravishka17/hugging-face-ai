@@ -9,20 +9,18 @@ function App() {
   const [error, setError] = useState('');
 
   const generateImage = async () => {
+    console.log('API Key:', import.meta.env.VITE_HUGGINGFACE_API_KEY); // Debug API key
     setLoading(true);
     setError('');
     try {
-      // Basic prompt validation
       if (!prompt || prompt.length > 500) {
         throw new Error('Prompt must be non-empty and under 500 characters.');
       }
-      // Simple content filter (extend as needed)
       const unsafeWords = ['illegal', 'harm', 'explicit'];
       if (unsafeWords.some(word => prompt.toLowerCase().includes(word))) {
         throw new Error('Prompt contains restricted content.');
       }
 
-      // Call Hugging Face API
       const response = await axios.post(
         'https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5',
         { inputs: prompt },
@@ -35,12 +33,12 @@ function App() {
         }
       );
 
-      // Display image
       const imageBlob = new Blob([response.data], { type: 'image/png' });
       const imageUrl = URL.createObjectURL(imageBlob);
       setImageUrl(imageUrl);
     } catch (err) {
-      setError('Failed to generate image. Check your prompt or try again.');
+      console.error('Error generating image:', err); // Log the error for debugging
+      setError('Failed to generate image: ' + (err.message || 'Unknown error'));
     } finally {
       setLoading(false);
     }
@@ -49,6 +47,7 @@ function App() {
   return (
     <div className="App">
       <h1>Image Generator</h1>
+      <p>Enter a prompt below to generate an image using Hugging Face AI.</p>
       <input
         type="text"
         value={prompt}
@@ -66,6 +65,7 @@ function App() {
           CreativeML Open RAIL++-M License
         </a>.
       </p>
+      <p>By using this app, you agree to the license terms.</p>
     </div>
   );
 }
