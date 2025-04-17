@@ -50,13 +50,21 @@ function App() {
       );
 
       console.log('API Response Received:', response);
+      if (response.data.size === 0) {
+        throw new Error('Received an empty image blob from the API.');
+      }
       const imageBlob = new Blob([response.data], { type: 'image/png' });
       const generatedUrl = URL.createObjectURL(imageBlob);
       setImageUrl(generatedUrl);
     } catch (err) {
       console.error('API Error:', err);
+      const errorMessage = err.response
+        ? `API Error: ${err.response.status} - ${
+            err.response.data.message || err.response.data.error || 'Unknown error'
+          }`
+        : `Failed to generate image: ${err.message || 'Unknown error'}`;
+      setError(errorMessage);
       console.error('Error Response:', err.response ? err.response.data : 'No response data');
-      setError('Failed to generate image: ' + (err.message || 'Unknown error'));
     } finally {
       setLoading(false);
     }
