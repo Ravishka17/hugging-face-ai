@@ -3,8 +3,8 @@ import axios from 'axios';
 import './App.css';
 
 function App() {
-  const [prompt, setPrompt] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [message, setMessage] = useState('');
+  const [conversation, setConversation] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -18,50 +18,50 @@ function App() {
     }
   }, []);
 
-  const generateImage = async () => {
-    console.log('Generate Clicked - API Key:', apiKey ? apiKey.substring(0, 5) + '...' : 'undefined');
+  const sendMessage = async () => {
+    console.log('Send Clicked - API Key:', apiKey ? apiKey.substring(0, 5) + '...' : 'undefined');
     if (!apiKey) {
       setError('Hugging Face API key is missing. Please contact the app administrator.');
       return;
     }
-    if (!prompt) {
-      setError('Please enter a prompt to generate an image.');
+    if (!message) {
+      setError('Please enter a message to send.');
       return;
     }
 
+    // Add user's message to the conversation
+    const updatedConversation = [...conversation, { role: 'user', content: message }];
+    setConversation(updatedConversation);
     setLoading(true);
     setError('');
-    setImageUrl('');
+    setMessage('');
+
     try {
-      console.log('Sending API request with prompt:', prompt);
+      console.log('Sending API request with message:', message);
       const response = await axios.post(
-        'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0',
+        'https://api-inference.huggingface.co/models/mixtralai/Mistral-7B-Instruct-v0.3',
         {
-          inputs: prompt,
+          messages: updatedConversation,
+          max_tokens: 512,
         },
         {
           headers: {
             Authorization: `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
           },
-          responseType: 'blob',
         }
       );
 
       console.log('API Response Received:', response);
-      if (response.data.size === 0) {
-        throw new Error('Received an empty image blob from the API.');
-      }
-      const imageBlob = new Blob([response.data], { type: 'image/png' });
-      const generatedUrl = URL.createObjectURL(imageBlob);
-      setImageUrl(generatedUrl);
+      const botResponse = response.data.choices[0].message.content;
+      setConversation([...updatedConversation, { role: 'assistant', content: botResponse }]);
     } catch (err) {
       console.error('API Error:', err);
       const errorMessage = err.response
         ? `API Error: ${err.response.status} - ${
             err.response.data.message || err.response.data.error || 'Unknown error'
           }`
-        : `Failed to generate image: ${err.message || 'Unknown error'}`;
+        : `Failed to get response: ${err.message || 'Unknown error'}`;
       setError(errorMessage);
       console.error('Error Response:', err.response ? err.response.data : 'No response data');
     } finally {
@@ -71,27 +71,59 @@ function App() {
 
   return (
     <div className="App">
-      <h1>Image Generator</h1>
+      <h1>Chatbot</h1>
       {error ? (
         <p style={{ color: 'red' }}>{error}</p>
       ) : (
-        <p>Enter a prompt below to generate an image using Hugging Face AI.</p>
+        <p>Chat with the bot below using Hugging Face AI.</p>
       )}
+      <div
+        style={{
+          border: '1px solid #ccc',
+          padding: '10px',
+          height: '300px',
+          overflowY: 'scroll',
+          margin: '10px 0',
+        }}
+      >
+        {conversation.map((msg, index) => (
+          <div
+            key={index}
+            style={{
+              textAlign: msg.role === 'user' ? 'right' : 'left',
+              margin: '5px 0',
+            }}
+          >
+            <p
+              style={{
+                display: 'inline-block',
+                backgroundColor: msg.role === 'user' ? '#007bff' : '#e9ecef',
+                color: msg.role === 'user' ? 'white' : 'black',
+                padding: '5px 10px',
+                borderRadius: '10px',
+                maxWidth: '70%',
+              }}
+            >
+              {msg.content}
+            </p>
+          </div>
+        ))}
+      </div>
       <input
         type="text"
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        placeholder="Enter a prompt (e.g., 'Astronaut riding a horse')"
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        placeholder="Type your message here..."
         style={{ margin: '10px', width: '300px' }}
+        onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
       />
-      <button onClick={generateImage} disabled={loading || !apiKey || !prompt}>
-        {loading ? 'Generating...' : 'Generate Image'}
+      <button onClick={sendMessage} disabled={loading || !apiKey || !message}>
+        {loading ? 'Sending...' : 'Send Message'}
       </button>
-      {imageUrl && <img src={imageUrl} alt="Generated" style={{ maxWidth: '500px', margin: '10px' }} />}
       <p>
         Powered by{' '}
-        <a href="https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0">
-          stabilityai/stable-diffusion-xl-base-1.0
+        <a href="https://huggingface.co/mixtralai/Mistral-7B-Instruct-v0.3">
+          mixtralai/Mistral-7B-Instruct-v0.3
         </a>.
       </p>
       <p>By using this app, you agree to the model’s terms of service.</p>
