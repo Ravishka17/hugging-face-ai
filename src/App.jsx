@@ -39,7 +39,7 @@ function App() {
     try {
       console.log('Sending API request with message:', message);
       const response = await axios.post(
-        'https://api-inference.huggingface.co/models/mixtralai/Mistral-7B-Instruct-v0.3',
+        'https://api-inference.huggingface.co/models/mixtralai/Mistral-7B-Instruct-v0.2',
         {
           messages: updatedConversation,
           max_tokens: 512,
