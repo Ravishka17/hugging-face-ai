@@ -11,7 +11,7 @@ function App() {
   const apiKey = import.meta.env.VITE_HUGGINGFACE_API_KEY;
 
   useEffect(() => {
-    console.log('Component Mounted - API Key:', apiKey);
+    console.log('Component Mounted - API Key (first 5 chars):', apiKey ? apiKey.substring(0, 5) + '...' : 'undefined');
     if (!apiKey) {
       setError('Hugging Face API key is missing. Please contact the app administrator.');
       console.error('API key missing in Vercel environment variables.');
@@ -19,7 +19,7 @@ function App() {
   }, []);
 
   const generateImage = async () => {
-    console.log('Generate Clicked - API Key:', apiKey);
+    console.log('Generate Clicked - API Key (first 5 chars):', apiKey ? apiKey.substring(0, 5) + '...' : 'undefined');
     if (!apiKey) {
       setError('Hugging Face API key is missing. Please contact the app administrator.');
       return;
@@ -38,7 +38,7 @@ function App() {
 
       console.log('Sending API request with prompt:', prompt);
       const response = await axios.post(
-        'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-3.5-large', // Updated model
+        'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-3.5-large',
         { inputs: prompt },
         {
           headers: {
