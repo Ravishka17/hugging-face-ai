@@ -11,7 +11,7 @@ function App() {
   const apiKey = import.meta.env.VITE_HUGGINGFACE_API_KEY;
 
   useEffect(() => {
-    console.log('Component Mounted - API Key (first 5 chars):', apiKey ? apiKey.substring(0, 5) + '...' : 'undefined');
+    console.log('Component Mounted - API Key:', apiKey || 'undefined');
     if (!apiKey) {
       setError('Hugging Face API key is missing. Please contact the app administrator.');
       console.error('API key missing in Vercel environment variables.');
@@ -23,12 +23,12 @@ function App() {
     if (file) {
       const url = URL.createObjectURL(file);
       setImage(file);
-      setImageUrl(url); // Preview the uploaded image
+      setImageUrl(url);
     }
   };
 
   const upscaleImage = async () => {
-    console.log('Upscale Clicked - API Key (first 5 chars):', apiKey ? apiKey.substring(0, 5) + '...' : 'undefined');
+    console.log('Upscale Clicked - API Key:', apiKey || 'undefined');
     if (!apiKey) {
       setError('Hugging Face API key is missing. Please contact the app administrator.');
       return;
