@@ -3,7 +3,7 @@ import axios from 'axios';
 import './App.css';
 
 function App() {
-  const [prompt, setPrompt] = useState('');
+  const [image, setImage] = useState(null);
   const [imageUrl, setImageUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -18,32 +18,40 @@ function App() {
     }
   }, []);
 
-  const generateImage = async () => {
-    console.log('Generate Clicked - API Key (first 5 chars):', apiKey ? apiKey.substring(0, 5) + '...' : 'undefined');
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setImage(file);
+      setImageUrl(url); // Preview the uploaded image
+    }
+  };
+
+  const upscaleImage = async () => {
+    console.log('Upscale Clicked - API Key (first 5 chars):', apiKey ? apiKey.substring(0, 5) + '...' : 'undefined');
     if (!apiKey) {
       setError('Hugging Face API key is missing. Please contact the app administrator.');
+      return;
+    }
+    if (!image) {
+      setError('Please upload an image to upscale.');
       return;
     }
 
     setLoading(true);
     setError('');
     try {
-      if (!prompt || prompt.length > 500) {
-        throw new Error('Prompt must be non-empty and under 500 characters.');
-      }
-      const unsafeWords = ['illegal', 'harm', 'explicit'];
-      if (unsafeWords.some(word => prompt.toLowerCase().includes(word))) {
-        throw new Error('Prompt contains restricted content.');
-      }
+      const formData = new FormData();
+      formData.append('image', image);
 
-      console.log('Sending API request with prompt:', prompt);
+      console.log('Sending upscale request with image:', image.name);
       const response = await axios.post(
-        'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-3.5-large',
-        { inputs: prompt },
+        'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-x4-upscaler',
+        formData,
         {
           headers: {
             Authorization: `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
+            'Content-Type': 'multipart/form-data',
           },
           responseType: 'blob',
         }
@@ -51,11 +59,11 @@ function App() {
 
       console.log('API Response Received:', response);
       const imageBlob = new Blob([response.data], { type: 'image/png' });
-      const imageUrl = URL.createObjectURL(imageBlob);
-      setImageUrl(imageUrl);
+      const upscaledUrl = URL.createObjectURL(imageBlob);
+      setImageUrl(upscaledUrl);
     } catch (err) {
       console.error('API Error:', err);
-      setError('Failed to generate image: ' + (err.message || 'Unknown error'));
+      setError('Failed to upscale image: ' + (err.message || 'Unknown error'));
     } finally {
       setLoading(false);
     }
@@ -63,22 +71,22 @@ function App() {
 
   return (
     <div className="App">
-      <h1>Image Generator</h1>
+      <h1>Image Upscaler</h1>
       {error ? (
         <p style={{ color: 'red' }}>{error}</p>
       ) : (
-        <p>Enter a prompt below to generate an image using Hugging Face AI.</p>
+        <p>Upload an image below to upscale it using Hugging Face AI.</p>
       )}
       <input
-        type="text"
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        placeholder="Enter a prompt (e.g., 'A cat in a spacesuit')"
+        type="file"
+        accept="image/*"
+        onChange={handleImageUpload}
+        style={{ margin: '10px' }}
       />
-      <button onClick={generateImage} disabled={loading || !apiKey}>
-        {loading ? 'Generating...' : 'Generate Image'}
+      {imageUrl && <img src={imageUrl} alt="Preview/Upscaled" style={{ maxWidth: '500px', margin: '10px' }} />}
+      <button onClick={upscaleImage} disabled={loading || !apiKey || !image}>
+        {loading ? 'Upscaling...' : 'Upscale Image'}
       </button>
-      {imageUrl && <img src={imageUrl} alt="Generated" style={{ maxWidth: '500px' }} />}
       <p>
         Powered by a model under the{' '}
         <a href="https://huggingface.co/spaces/CompVis/stable-diffusion-license">
