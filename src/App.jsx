@@ -3,7 +3,7 @@ import axios from 'axios';
 import './App.css';
 
 function App() {
-  const [image, setImage] = useState(null);
+  const [prompt, setPrompt] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -18,42 +18,32 @@ function App() {
     }
   }, []);
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setImage(file);
-      setImageUrl(url);
-    }
-  };
-
-  const upscaleImage = async () => {
-    console.log('Upscale Clicked - API Key:', apiKey ? apiKey.substring(0, 5) + '...' : 'undefined');
+  const generateImage = async () => {
+    console.log('Generate Clicked - API Key:', apiKey ? apiKey.substring(0, 5) + '...' : 'undefined');
     if (!apiKey) {
       setError('Hugging Face API key is missing. Please contact the app administrator.');
       return;
     }
-    if (!image) {
-      setError('Please upload an image to upscale.');
+    if (!prompt) {
+      setError('Please enter a prompt to generate an image.');
       return;
     }
 
     setLoading(true);
     setError('');
+    setImageUrl('');
     try {
-      const formData = new FormData();
-      formData.append('image', image);
-      // Add an optional prompt if required by the model
-      formData.append('prompt', 'Enhance the details of this image'); // Optional, adjust as needed
-
-      console.log('Sending upscale request with image:', image.name, 'Size:', image.size, 'Type:', image.type);
+      console.log('Sending API request with prompt:', prompt);
       const response = await axios.post(
-        'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-x4-upscaler',
-        formData,
+        'https://router.huggingface.co/fal-ai/fal-ai/hidream-i1-full',
+        {
+          sync_mode: true,
+          prompt: prompt,
+        },
         {
           headers: {
             Authorization: `Bearer ${apiKey}`,
-            'Content-Type': 'multipart/form-data',
+            'Content-Type': 'application/json',
           },
           responseType: 'blob',
         }
@@ -61,12 +51,12 @@ function App() {
 
       console.log('API Response Received:', response);
       const imageBlob = new Blob([response.data], { type: 'image/png' });
-      const upscaledUrl = URL.createObjectURL(imageBlob);
-      setImageUrl(upscaledUrl);
+      const generatedUrl = URL.createObjectURL(imageBlob);
+      setImageUrl(generatedUrl);
     } catch (err) {
       console.error('API Error:', err);
       console.error('Error Response:', err.response ? err.response.data : 'No response data');
-      setError('Failed to upscale image: ' + (err.message || 'Unknown error'));
+      setError('Failed to generate image: ' + (err.message || 'Unknown error'));
     } finally {
       setLoading(false);
     }
@@ -74,29 +64,28 @@ function App() {
 
   return (
     <div className="App">
-      <h1>Image Upscaler</h1>
+      <h1>Image Generator</h1>
       {error ? (
         <p style={{ color: 'red' }}>{error}</p>
       ) : (
-        <p>Upload an image below to upscale it using Hugging Face AI.</p>
+        <p>Enter a prompt below to generate an image using Hugging Face AI.</p>
       )}
       <input
-        type="file"
-        accept="image/*"
-        onChange={handleImageUpload}
-        style={{ margin: '10px' }}
+        type="text"
+        value={prompt}
+        onChange={(e) => setPrompt(e.target.value)}
+        placeholder="Enter a prompt (e.g., 'Astronaut riding a horse')"
+        style={{ margin: '10px', width: '300px' }}
       />
-      {imageUrl && <img src={imageUrl} alt="Preview/Upscaled" style={{ maxWidth: '500px', margin: '10px' }} />}
-      <button onClick={upscaleImage} disabled={loading || !apiKey || !image}>
-        {loading ? 'Upscaling...' : 'Upscale Image'}
+      <button onClick={generateImage} disabled={loading || !apiKey || !prompt}>
+        {loading ? 'Generating...' : 'Generate Image'}
       </button>
+      {imageUrl && <img src={imageUrl} alt="Generated" style={{ maxWidth: '500px', margin: '10px' }} />}
       <p>
-        Powered by a model under the{' '}
-        <a href="https://huggingface.co/spaces/CompVis/stable-diffusion-license">
-          CreativeML Open RAIL++-M License
-        </a>.
+        Powered by{' '}
+        <a href="https://huggingface.co/fal-ai/fal-ai/hidream-i1-full">fal-ai/hidream-i1-full</a>.
       </p>
-      <p>By using this app, you agree to the license terms.</p>
+      <p>By using this app, you agree to the model’s terms of service.</p>
     </div>
   );
 }
