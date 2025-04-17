@@ -35,10 +35,9 @@ function App() {
     try {
       console.log('Sending API request with prompt:', prompt);
       const response = await axios.post(
-        'https://router.huggingface.co/fal-ai/fal-ai/hidream-i1-full',
+        'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0',
         {
-          sync_mode: true,
-          prompt: prompt,
+          inputs: prompt,
         },
         {
           headers: {
@@ -91,7 +90,9 @@ function App() {
       {imageUrl && <img src={imageUrl} alt="Generated" style={{ maxWidth: '500px', margin: '10px' }} />}
       <p>
         Powered by{' '}
-        <a href="https://huggingface.co/fal-ai/fal-ai/hidream-i1-full">fal-ai/hidream-i1-full</a>.
+        <a href="https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0">
+          stabilityai/stable-diffusion-xl-base-1.0
+        </a>.
       </p>
       <p>By using this app, you agree to the model’s terms of service.</p>
     </div>
