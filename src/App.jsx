@@ -11,7 +11,7 @@ function App() {
   const apiKey = import.meta.env.VITE_HUGGINGFACE_API_KEY;
 
   useEffect(() => {
-    console.log('Component Mounted - API Key:', apiKey || 'undefined');
+    console.log('Component Mounted - API Key:', apiKey ? apiKey.substring(0, 5) + '...' : 'undefined');
     if (!apiKey) {
       setError('Hugging Face API key is missing. Please contact the app administrator.');
       console.error('API key missing in Vercel environment variables.');
@@ -28,7 +28,7 @@ function App() {
   };
 
   const upscaleImage = async () => {
-    console.log('Upscale Clicked - API Key:', apiKey || 'undefined');
+    console.log('Upscale Clicked - API Key:', apiKey ? apiKey.substring(0, 5) + '...' : 'undefined');
     if (!apiKey) {
       setError('Hugging Face API key is missing. Please contact the app administrator.');
       return;
@@ -43,8 +43,10 @@ function App() {
     try {
       const formData = new FormData();
       formData.append('image', image);
+      // Add an optional prompt if required by the model
+      formData.append('prompt', 'Enhance the details of this image'); // Optional, adjust as needed
 
-      console.log('Sending upscale request with image:', image.name);
+      console.log('Sending upscale request with image:', image.name, 'Size:', image.size, 'Type:', image.type);
       const response = await axios.post(
         'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-x4-upscaler',
         formData,
@@ -63,6 +65,7 @@ function App() {
       setImageUrl(upscaledUrl);
     } catch (err) {
       console.error('API Error:', err);
+      console.error('Error Response:', err.response ? err.response.data : 'No response data');
       setError('Failed to upscale image: ' + (err.message || 'Unknown error'));
     } finally {
       setLoading(false);
