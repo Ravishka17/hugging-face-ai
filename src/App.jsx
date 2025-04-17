@@ -10,11 +10,10 @@ function App() {
 
   const apiKey = import.meta.env.VITE_HUGGINGFACE_API_KEY;
 
-  // Log API key on component mount
   useEffect(() => {
     console.log('API Key on Mount:', apiKey);
     if (!apiKey) {
-      console.error('Hugging Face API key is missing. Please set VITE_HUGGINGFACE_API_KEY in Vercel.');
+      setError('Hugging Face API key is missing. Please contact the app administrator.');
     }
   }, []);
 
@@ -62,12 +61,10 @@ function App() {
   return (
     <div className="App">
       <h1>Image Generator</h1>
-      {apiKey ? (
-        <p>API Key is set. Enter a prompt to generate an image.</p>
+      {error ? (
+        <p style={{ color: 'red' }}>{error}</p>
       ) : (
-        <p style={{ color: 'red' }}>
-          Hugging Face API key is missing. Please contact the app administrator.
-        </p>
+        <p>Enter a prompt below to generate an image using Hugging Face AI.</p>
       )}
       <input
         type="text"
@@ -78,7 +75,6 @@ function App() {
       <button onClick={generateImage} disabled={loading || !apiKey}>
         {loading ? 'Generating...' : 'Generate Image'}
       </button>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
       {imageUrl && <img src={imageUrl} alt="Generated" style={{ maxWidth: '500px' }} />}
       <p>
         Powered by a model under the{' '}
