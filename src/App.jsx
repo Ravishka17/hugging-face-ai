@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 
@@ -8,14 +8,18 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Check for API key on load
   const apiKey = import.meta.env.VITE_HUGGINGFACE_API_KEY;
-  if (!apiKey) {
-    console.error('Hugging Face API key is missing. Please set VITE_HUGGINGFACE_API_KEY in Vercel.');
-  }
+
+  // Log API key on component mount
+  useEffect(() => {
+    console.log('API Key on Mount:', apiKey);
+    if (!apiKey) {
+      console.error('Hugging Face API key is missing. Please set VITE_HUGGINGFACE_API_KEY in Vercel.');
+    }
+  }, []);
 
   const generateImage = async () => {
-    console.log('API Key:', apiKey);
+    console.log('API Key on Generate:', apiKey);
     if (!apiKey) {
       setError('Hugging Face API key is missing. Please contact the app administrator.');
       return;
@@ -58,12 +62,13 @@ function App() {
   return (
     <div className="App">
       <h1>Image Generator</h1>
-      {!apiKey && (
+      {apiKey ? (
+        <p>API Key is set. Enter a prompt to generate an image.</p>
+      ) : (
         <p style={{ color: 'red' }}>
           Hugging Face API key is missing. Please contact the app administrator.
         </p>
       )}
-      <p>Enter a prompt below to generate an image using Hugging Face AI.</p>
       <input
         type="text"
         value={prompt}
