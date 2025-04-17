@@ -11,14 +11,15 @@ function App() {
   const apiKey = import.meta.env.VITE_HUGGINGFACE_API_KEY;
 
   useEffect(() => {
-    console.log('API Key on Mount:', apiKey);
+    console.log('Component Mounted - API Key:', apiKey);
     if (!apiKey) {
       setError('Hugging Face API key is missing. Please contact the app administrator.');
+      console.error('API key missing in Vercel environment variables.');
     }
   }, []);
 
   const generateImage = async () => {
-    console.log('API Key on Generate:', apiKey);
+    console.log('Generate Clicked - API Key:', apiKey);
     if (!apiKey) {
       setError('Hugging Face API key is missing. Please contact the app administrator.');
       return;
@@ -35,8 +36,9 @@ function App() {
         throw new Error('Prompt contains restricted content.');
       }
 
+      console.log('Sending API request with prompt:', prompt);
       const response = await axios.post(
-        'https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5',
+        'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-3.5-large', // Updated model
         { inputs: prompt },
         {
           headers: {
@@ -47,11 +49,12 @@ function App() {
         }
       );
 
+      console.log('API Response Received:', response);
       const imageBlob = new Blob([response.data], { type: 'image/png' });
       const imageUrl = URL.createObjectURL(imageBlob);
       setImageUrl(imageUrl);
     } catch (err) {
-      console.error('Error generating image:', err);
+      console.error('API Error:', err);
       setError('Failed to generate image: ' + (err.message || 'Unknown error'));
     } finally {
       setLoading(false);
