@@ -16,7 +16,7 @@ function App() {
       setError('Hugging Face API key is missing. Please contact the app administrator.');
       console.error('API key missing in Vercel environment variables.');
     }
-  }, []);
+  }, [apiKey]);
 
   const sendMessage = async () => {
     console.log('Send Clicked - API Key:', apiKey ? apiKey.substring(0, 5) + '...' : 'undefined');
@@ -39,10 +39,16 @@ function App() {
     try {
       console.log('Sending API request with message:', message);
       const response = await axios.post(
-        'https://api-inference.huggingface.co/models/mixtralai/Mixtral-8x7B-Instruct-v0.1',
+        'https://api-inference.huggingface.co/models/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B',
         {
-          messages: updatedConversation,
-          max_tokens: 512,
+          inputs: {
+            messages: updatedConversation.map(msg => ({
+              role: msg.role,
+              content: msg.content
+            })),
+            max_tokens: 512,
+            temperature: 0.7,
+          }
         },
         {
           headers: {
@@ -53,7 +59,8 @@ function App() {
       );
 
       console.log('API Response Received:', response);
-      const botResponse = response.data.choices[0].message.content;
+      // Adjust based on DeepSeek R1's response structure
+      const botResponse = response.data[0].generated_text || response.data.generated_text;
       setConversation([...updatedConversation, { role: 'assistant', content: botResponse }]);
     } catch (err) {
       console.error('API Error:', err);
@@ -122,8 +129,8 @@ function App() {
       </button>
       <p>
         Powered by{' '}
-        <a href="https://huggingface.co/mixtralai/Mistral-7B-Instruct-v0.3">
-          mixtralai/Mistral-7B-Instruct-v0.3
+        <a href="https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B">
+          deepseek-ai/DeepSeek-R1-Distill-Qwen-7B
         </a>.
       </p>
       <p>By using this app, you agree to the model’s terms of service.</p>
