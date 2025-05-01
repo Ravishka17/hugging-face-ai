@@ -39,7 +39,7 @@ function App() {
     try {
       console.log('Sending API request with message:', message);
       const response = await axios.post(
-        'https://api-inference.huggingface.co/models/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B',
+        'https://api-inference.huggingface.co/models/deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B',
         {
           inputs: {
             messages: updatedConversation.map(msg => ({
@@ -59,7 +59,6 @@ function App() {
       );
 
       console.log('API Response Received:', response);
-      // Adjust based on DeepSeek R1's response structure
       const botResponse = response.data[0].generated_text || response.data.generated_text;
       setConversation([...updatedConversation, { role: 'assistant', content: botResponse }]);
     } catch (err) {
@@ -129,8 +128,8 @@ function App() {
       </button>
       <p>
         Powered by{' '}
-        <a href="https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B">
-          deepseek-ai/DeepSeek-R1-Distill-Qwen-7B
+        <a href="https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B">
+          deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
         </a>.
       </p>
       <p>By using this app, you agree to the model’s terms of service.</p>
