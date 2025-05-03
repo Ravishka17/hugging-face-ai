@@ -39,7 +39,7 @@ function App() {
     try {
       console.log('Sending API request with message:', message);
       const response = await axios.post(
-        'https://api-inference.huggingface.co/models/distilbert/distilgpt2',
+        'https://api-inference.huggingface.co/models/microsoft/DialoGPT-small',
         {
           inputs: {
             messages: updatedConversation.map(msg => ({
@@ -128,8 +128,8 @@ function App() {
       </button>
       <p>
         Powered by{' '}
-        <a href="https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B">
-          deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
+        <a href="https://huggingface.co/microsoft/DialoGPT-small">
+          microsoft/DialoGPT-small
         </a>.
       </p>
       <p>By using this app, you agree to the model’s terms of service.</p>
