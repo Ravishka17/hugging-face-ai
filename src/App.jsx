@@ -39,7 +39,7 @@ function App() {
     try {
       console.log('Sending API request with message:', message);
       const response = await axios.post(
-        'https://api-inference.huggingface.co/models/deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B',
+        'https://api-inference.huggingface.co/models/distilbert/distilgpt2',
         {
           inputs: {
             messages: updatedConversation.map(msg => ({
